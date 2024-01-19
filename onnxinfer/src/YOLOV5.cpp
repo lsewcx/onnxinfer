@@ -198,12 +198,13 @@ void YOLOv5::detect(Mat &frame, bool &draw)
     // Perform non maximum suppression to eliminate redundant overlapping boxes with
     // lower confidences
     nms(generate_boxes);
-    for (size_t i = 0; i < generate_boxes.size(); ++i)
+    if (draw)
     {
-        int xmin = int(generate_boxes[i].x1);
-        int ymin = int(generate_boxes[i].y1);
-        if (draw)
+        for (size_t i = 0; i < generate_boxes.size(); ++i)
         {
+            int xmin = int(generate_boxes[i].x1);
+            int ymin = int(generate_boxes[i].y1);
+
             rectangle(frame, Point(xmin, ymin), Point(int(generate_boxes[i].x2), int(generate_boxes[i].y2)), Scalar(0, 0, 255), 2);
             string label = format("%.2f", generate_boxes[i].score);
             label = this->classes[generate_boxes[i].label] + ":" + label;

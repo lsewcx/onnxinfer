@@ -30,8 +30,11 @@ int main(int argc, char *argv[])
     cout << "The run time is:" << (double)clock() / CLOCKS_PER_SEC * 1000 << "ms" << endl;
     cout << "getTickCount_running time :" << nTime << "ms\n"
          << endl;
-    imshow("bus", srcimg);
-    // imwrite("bus.jpg", srcimg);
-    waitKey(0);
+    if (motion.params.draw)
+    {
+        imshow("bus", srcimg);
+        // imwrite("bus.jpg", srcimg);
+        waitKey(0);
+    }
     return 0;
 }
