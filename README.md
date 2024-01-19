@@ -3,3 +3,7 @@
 ## 让代码变得更加的模块化
 ## getlabel从txt中获取标签
 ## 推理视频
+
+## onnxinfer-nms-CUDA
+
+是将nms转换为cuda代码的部分

@@ -1,0 +1,18 @@
+{
+    "confidencethreshold": 0.3,
+    "nmsthreshold": 0.5,
+    "objthreshold": 0.3,
+    "modelpath": "yolov5s.onnx",
+    "imgpath": "bus.jpg",
+    "draw": true,
+    "record": [
+        {
+            "#confidencethreshold": "置信度阈值",
+            "#nmsthreshold": " nms阈值",
+            "#objthreshold": "物体识别阈值",
+            "#modelpath": "模型路径",
+            "#imgpath": "图片路径",
+            "#draw": "是否绘制"
+        }
+    ]
+}

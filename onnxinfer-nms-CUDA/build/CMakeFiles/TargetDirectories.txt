@@ -1,0 +1,4 @@
+/home/a/onnxinfer/build/CMakeFiles/rebuild_cache.dir
+/home/a/onnxinfer/build/CMakeFiles/edit_cache.dir
+/home/a/onnxinfer/build/CMakeFiles/myplugins.dir
+/home/a/onnxinfer/build/CMakeFiles/yolov5.dir
