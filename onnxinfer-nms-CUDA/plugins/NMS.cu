@@ -1,3 +1,5 @@
+#include <thrust/device_vector.h>
+#include <thrust/fill.h>
 #include "../include/cuda_utils.h"
 #include "NMS.h"
 
@@ -30,37 +32,26 @@ __global__ void nms_kernel(BoxInfo *input_boxes, bool *isSuppressed, int n, floa
     }
 }
 
-void nmscuda(vector<BoxInfo> &input_boxes)
+void nmscuda(std::vector<BoxInfo> &input_boxes_host)
 {
-    // 将输入数据从主机内存复制到设备内存
-    BoxInfo *d_input_boxes;
-    cudaMalloc(&d_input_boxes, input_boxes.size() * sizeof(BoxInfo));
-    cudaMemcpy(d_input_boxes, input_boxes.data(), input_boxes.size() * sizeof(BoxInfo), cudaMemcpyHostToDevice);
+    thrust::device_vector<BoxInfo> input_boxes = input_boxes_host;
+    thrust::device_vector<bool> isSuppressed(input_boxes.size());
 
-    // 初始化isSuppressed数组
-    bool *d_isSuppressed;
-    cudaMalloc(&d_isSuppressed, input_boxes.size() * sizeof(bool));
-    cudaMemset(d_isSuppressed, 0, input_boxes.size() * sizeof(bool));
+    thrust::fill(isSuppressed.begin(), isSuppressed.end(), false);
 
-    // 调用CUDA内核函数
     int blockSize = 256;
     int numBlocks = (input_boxes.size() + blockSize - 1) / blockSize;
-    int nmsThreshold = 0.3;
-    nms_kernel<<<numBlocks, blockSize>>>(d_input_boxes, d_isSuppressed, input_boxes.size(), nmsThreshold);
+    float nmsThreshold = 0.3;
+    nms_kernel<<<numBlocks, blockSize>>>(thrust::raw_pointer_cast(input_boxes.data()), thrust::raw_pointer_cast(isSuppressed.data()), input_boxes.size(), nmsThreshold);
 
     // 将结果从设备内存复制回主机内存
-    cudaMemcpy(input_boxes.data(), d_input_boxes, input_boxes.size() * sizeof(BoxInfo), cudaMemcpyDeviceToHost);
-    bool *isSuppressed = new bool[input_boxes.size()];
-    cudaMemcpy(isSuppressed, d_isSuppressed, input_boxes.size() * sizeof(bool), cudaMemcpyDeviceToHost);
-
-    // 清理设备内存
-    cudaFree(d_input_boxes);
-    cudaFree(d_isSuppressed);
+    thrust::copy(input_boxes.begin(), input_boxes.end(), input_boxes_host.begin());
+    std::vector<bool> isSuppressed_host(isSuppressed.size());
+    thrust::copy(isSuppressed.begin(), isSuppressed.end(), isSuppressed_host.begin());
 
     // 在主机内存中删除被抑制的框
     int idx_t = 0;
-    input_boxes.erase(remove_if(input_boxes.begin(), input_boxes.end(), [&idx_t, isSuppressed](const BoxInfo &f)
-                                { return isSuppressed[idx_t++]; }),
-                      input_boxes.end());
-    delete[] isSuppressed;
+    input_boxes_host.erase(remove_if(input_boxes_host.begin(), input_boxes_host.end(), [&idx_t, &isSuppressed_host](const BoxInfo &f)
+                                     { return isSuppressed_host[idx_t++]; }),
+                           input_boxes_host.end());
 }

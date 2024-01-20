@@ -2,9 +2,9 @@
     "confidencethreshold": 0.3,
     "nmsthreshold": 0.5,
     "objthreshold": 0.3,
-    "modelpath": "yolov5s.onnx",
+    "modelpath": "yolov5.onnx",
     "imgpath": "bus.jpg",
-    "draw": true,
+    "draw": false,
     "record": [
         {
             "#confidencethreshold": "置信度阈值",

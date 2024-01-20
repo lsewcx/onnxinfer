@@ -11,7 +11,9 @@ YOLOv5::YOLOv5(Configuration config)
 
     string model_path = config.modelpath;
 
-    sessionOptions.SetGraphOptimizationLevel(ORT_ENABLE_BASIC); // 设置图优化类型
+    sessionOptions.SetGraphOptimizationLevel(ORT_ENABLE_ALL); // 设置图优化类型
+    sessionOptions.SetIntraOpNumThreads(4);
+    // sessionOptions.SetIntraOpNumThreads(8);
     ort_session = new Session(env, (const char *)model_path.c_str(), sessionOptions);
     size_t numInputNodes = ort_session->GetInputCount(); // 输入输出节点数量
     size_t numOutputNodes = ort_session->GetOutputCount();
@@ -153,7 +155,6 @@ void YOLOv5::detect(Mat &frame, bool &draw)
     // 创建输入tensor
     auto allocator_info = MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
     Value input_tensor_ = Value::CreateTensor<float>(allocator_info, input_image_.data(), input_image_.size(), input_shape_.data(), input_shape_.size());
-
     // 开始推理
     vector<Value> ort_outputs = ort_session->Run(RunOptions{nullptr}, &input_names[0], &input_tensor_, 1, output_names.data(), output_names.size()); // 开始推理
     // generate proposals
@@ -195,16 +196,14 @@ void YOLOv5::detect(Mat &frame, bool &draw)
         }
     }
 
-    // Perform non maximum suppression to eliminate redundant overlapping boxes with
-    // lower confidences
     nmscuda(generate_boxes);
     // nms(generate_boxes);
-    for (size_t i = 0; i < generate_boxes.size(); ++i)
+    if (draw)
     {
-        int xmin = int(generate_boxes[i].x1);
-        int ymin = int(generate_boxes[i].y1);
-        if (draw)
+        for (size_t i = 0; i < generate_boxes.size(); ++i)
         {
+            int xmin = int(generate_boxes[i].x1);
+            int ymin = int(generate_boxes[i].y1);
             rectangle(frame, Point(xmin, ymin), Point(int(generate_boxes[i].x2), int(generate_boxes[i].y2)), Scalar(0, 0, 255), 2);
             string label = format("%.2f", generate_boxes[i].score);
             label = this->classes[generate_boxes[i].label] + ":" + label;

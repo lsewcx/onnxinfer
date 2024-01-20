@@ -18,11 +18,14 @@ int main(int argc, char *argv[])
 {
     Motion motion;
     clock_t startTime, endTime; // 计算时间
+    // 初始化模型参数
     Configuration yolo_nets = {motion.params.confidencethreshold, motion.params.nmsthreshold, motion.params.objthreshold, motion.params.modelpath};
     YOLOv5 yolo_model(yolo_nets);
+    // 读取视频
     Mat srcimg = imread(motion.params.imgpath);
     double timeStart = (double)getTickCount();
     startTime = clock(); // 计时开始
+    // 推理
     yolo_model.detect(srcimg, motion.params.draw);
     endTime = clock();                                                               // 计时结束
     double nTime = ((double)getTickCount() - timeStart) / getTickFrequency() * 1000; // 转换为毫秒
@@ -30,8 +33,11 @@ int main(int argc, char *argv[])
     cout << "The run time is:" << (double)clock() / CLOCKS_PER_SEC * 1000 << "ms" << endl;
     cout << "getTickCount_running time :" << nTime << "ms\n"
          << endl;
-    imshow("bus", srcimg);
-    // imwrite("bus.jpg", srcimg);
-    waitKey(0);
+    if (motion.params.draw)
+    {
+        imshow("bus", srcimg);
+        // imwrite("bus.jpg", srcimg);
+        waitKey(0);
+    }
     return 0;
 }
